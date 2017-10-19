@@ -1,0 +1,86 @@
+;
+; VBus_SeanXS.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: edit Class
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=VBus_SeanXS.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+driver_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+;[ClassInstall32]
+;Addreg=SampleClassReg
+
+;[SampleClassReg]
+;HKR,,,0,%ClassName%
+;HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+VBus_SeanXS.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%VBus_SeanXS.DeviceDesc%=driver_Device, Root\VBus_SeanXS ; TODO: edit hw-id
+
+[driver_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+VBus_SeanXS.sys
+
+;-------------- Service installation
+[driver_Device.NT.Services]
+AddService = VBus_SeanXS,%SPSVCINST_ASSOCSERVICE%, driver_Service_Inst
+
+; -------------- VBus_SeanXS VBus_SeanXS install sections
+[driver_Service_Inst]
+DisplayName    = %VBus_SeanXS.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\VBus_SeanXS.sys
+
+;
+;--- driver_Device Coinstaller installation ------
+;
+
+[driver_Device.NT.CoInstallers]
+AddReg=driver_Device_CoInstaller_AddReg
+CopyFiles=driver_Device_CoInstaller_CopyFiles
+
+[driver_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[driver_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[driver_Device.NT.Wdf]
+KmdfService =  VBus_SeanXS, driver_wdfsect
+[driver_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="Sheng.Xiao" ;TODO: Replace with your manufacturer name
+;ClassName="Samples" ; TODO: edit ClassName
+DiskName = "VBus_SeanXS Installation Disk"
+VBus_SeanXS.DeviceDesc = "VBus_SeanXS Device"
+VBus_SeanXS.SVCDESC = "VBus_SeanXS Service"
