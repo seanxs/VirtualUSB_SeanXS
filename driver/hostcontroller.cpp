@@ -178,6 +178,7 @@ Controller_EvtControllerReset(
 	UCXCONTROLLER   UcxController
 )
 {
+	PAGED_CODE();
 	UCX_CONTROLLER_RESET_COMPLETE_INFO controllerResetCompleteInfo;
 	TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_CONTROLLER, "%!FUNC! Entry");
 

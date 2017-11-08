@@ -177,6 +177,7 @@ driverEvtDriverUnload(
 	WDFDRIVER Driver
 )
 {
+	PAGED_CODE();
 	UNREFERENCED_PARAMETER(Driver);
 
 	return;
