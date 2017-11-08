@@ -13,8 +13,10 @@ Environment:
     Kernel-mode Driver Framework
 
 --*/
+#ifndef _VBUS_SEANXS_DEVICE_H
+#define _VBUS_SEANXS_DEVICE_H
 
-#include "public.h"
+#include "common.h"
 
 EXTERN_C_START
 
@@ -25,7 +27,10 @@ EXTERN_C_START
 typedef struct _DEVICE_CONTEXT
 {
     ULONG PrivateDeviceData;  // just a placeholder
-
+	UCXCONTROLLER USBController;
+	UCXROOTHUB USBRootHub;
+	WDFDPC CompleteUrbDpc;
+	WDFQUEUE CompleteUrbQueue;
 } DEVICE_CONTEXT, *PDEVICE_CONTEXT;
 
 //
@@ -44,3 +49,5 @@ driverCreateDevice(
     );
 
 EXTERN_C_END
+
+#endif // !_VBUS_SEANXS_DEVICE_H

@@ -15,6 +15,8 @@ Environment:
 --*/
 
 #include "driver.h"
+#include "Device.h"
+#include "wskclient.h"
 #include "driver.tmh"
 
 #ifdef ALLOC_PRAGMA
@@ -58,7 +60,7 @@ Return Value:
     WDF_DRIVER_CONFIG config;
     NTSTATUS status;
     WDF_OBJECT_ATTRIBUTES attributes;
-
+	WDFDRIVER WdfDrvObj;
     //
     // Initialize WPP Tracing
     //
@@ -70,24 +72,27 @@ Return Value:
     // Register a cleanup callback so that we can call WPP_CLEANUP when
     // the framework driver object is deleted during driver unload.
     //
-    WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+	WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes, DRIVER_CONTEXT);
     attributes.EvtCleanupCallback = driverEvtDriverContextCleanup;
 
 	WDF_DRIVER_CONFIG_INIT(&config, driverEvtDeviceAdd);
 	config.DriverPoolTag = 'NEAS';
+	config.EvtDriverUnload = driverEvtDriverUnload;
 
-    status = WdfDriverCreate(DriverObject,
-                             RegistryPath,
-                             &attributes,
-                             &config,
-                             WDF_NO_HANDLE
-                             );
+	status = WdfDriverCreate(
+		DriverObject,
+		RegistryPath,
+		&attributes,
+		&config,
+		&WdfDrvObj);
 
     if (!NT_SUCCESS(status)) {
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DRIVER, "WdfDriverCreate failed %!STATUS!", status);
         WPP_CLEANUP(DriverObject);
         return status;
     }
+
+	status = InitWskClient(WdfDrvObj);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
 
@@ -152,8 +157,6 @@ Return Value:
 
 --*/
 {
-    UNREFERENCED_PARAMETER(DriverObject);
-
 	//	added the following code, https://github.com/Microsoft/Windows-driver-samples/issues/39#issuecomment-286915071
 	_IRQL_limited_to_(PASSIVE_LEVEL);
 
@@ -161,6 +164,7 @@ Return Value:
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
 
+	UnInitWskClient((WDFDRIVER)DriverObject);
     //
     // Stop WPP Tracing
     //

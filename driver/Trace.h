@@ -28,6 +28,9 @@ Environment:
         WPP_DEFINE_BIT(TRACE_DRIVER)                                   \
         WPP_DEFINE_BIT(TRACE_DEVICE)                                   \
         WPP_DEFINE_BIT(TRACE_QUEUE)                                    \
+		WPP_DEFINE_BIT(TRACE_WSKCLIENT)                                    \
+		WPP_DEFINE_BIT(TRACE_CONTROLLER)                                    \
+		WPP_DEFINE_BIT(TRACE_ROOTHUB)                                    \
         )                             
 
 #define WPP_FLAG_LEVEL_LOGGER(flag, level)                                  \

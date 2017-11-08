@@ -14,15 +14,19 @@ Environment:
 
 --*/
 
-#include <ntddk.h>
-#include <wdf.h>
-#include <initguid.h>
 
-#include "device.h"
-#include "queue.h"
-#include "trace.h"
+#include "common.h"
 
 EXTERN_C_START
+
+typedef struct _DRIVER_CONTEXT
+{
+	WSK_REGISTRATION WskRegistration;
+	WSK_PROVIDER_NPI WskProviderNpi;
+	WSK_CLIENT_NPI wskClientNpi;
+} DRIVER_CONTEXT, *PDRIVER_CONTEXT;
+
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DRIVER_CONTEXT, GetDriverContext)
 
 //
 // WDFDRIVER Events

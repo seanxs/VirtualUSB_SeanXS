@@ -13,6 +13,10 @@ Environment:
     Kernel-mode Driver Framework
 
 --*/
+#ifndef _VBUS_SEANXS_QUEUE_H
+#define _VBUS_SEANXS_QUEUE_H
+
+#include "common.h"
 
 EXTERN_C_START
 
@@ -40,3 +44,5 @@ EVT_WDF_IO_QUEUE_IO_DEVICE_CONTROL driverEvtIoDeviceControl;
 EVT_WDF_IO_QUEUE_IO_STOP driverEvtIoStop;
 
 EXTERN_C_END
+
+#endif // !_VBUS_SEANXS_QUEUE_H
