@@ -4,10 +4,10 @@
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=System ; TODO: edit Class
-ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318} ; TODO: edit ClassGuid
+Class=USB ; TODO: edit Class
+ClassGuid={36fc9e60-c465-11cf-8056-444553540000} ; TODO: edit ClassGuid
 Provider=%ManufacturerName%
-CatalogFile=VBus_SeanXS.cat
+CatalogFile=vbus_seanxs.cat
 DriverVer= ; TODO: set DriverVer in stampinf property pages
 
 [DestinationDirs]
@@ -48,7 +48,7 @@ VBus_SeanXS.sys
 
 ;-------------- Service installation
 [driver_Device.NT.Services]
-AddService = VBus_SeanXS,%SPSVCINST_ASSOCSERVICE%, driver_Service_Inst
+AddService = VBus_SeanXS,%SPSVCINST_ASSOCSERVICE%, driver_Service_Inst, driver_event_log
 
 ; -------------- VBus_SeanXS VBus_SeanXS install sections
 [driver_Service_Inst]
@@ -57,7 +57,17 @@ ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 3               ; SERVICE_DEMAND_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
 ServiceBinary  = %12%\VBus_SeanXS.sys
+Addreg=ServiceAddReg
 
+[ServiceAddReg]
+HKR,,RemoteHostIp,0x10000,%REMOTEIP%
+
+[driver_event_log]
+AddReg=EventlogAddReg
+
+[EventlogAddReg]
+HKR,,EventMessageFile,0x00020000,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\VBus_SeanXS.sys"
+HKR,,TypesSupported,0x00010001,7 
 ;
 ;--- driver_Device Coinstaller installation ------
 ;
@@ -80,6 +90,7 @@ KmdfLibraryVersion = $KMDFVERSION$
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
 ManufacturerName="Sheng.Xiao" ;TODO: Replace with your manufacturer name
+REMOTEIP="192.168.10.195"
 ;ClassName="Samples" ; TODO: edit ClassName
 DiskName = "VBus_SeanXS Installation Disk"
 VBus_SeanXS.DeviceDesc = "VBus_SeanXS Device"

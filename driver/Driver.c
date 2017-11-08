@@ -20,6 +20,7 @@ Environment:
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text (INIT, DriverEntry)
 #pragma alloc_text (PAGE, driverEvtDeviceAdd)
+#pragma alloc_text (PAGE, driverEvtDriverUnload)
 #pragma alloc_text (PAGE, driverEvtDriverContextCleanup)
 #endif
 
@@ -72,9 +73,8 @@ Return Value:
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.EvtCleanupCallback = driverEvtDriverContextCleanup;
 
-    WDF_DRIVER_CONFIG_INIT(&config,
-                           driverEvtDeviceAdd
-                           );
+	WDF_DRIVER_CONFIG_INIT(&config, driverEvtDeviceAdd);
+	config.DriverPoolTag = 'NEAS';
 
     status = WdfDriverCreate(DriverObject,
                              RegistryPath,
@@ -165,4 +165,15 @@ Return Value:
     // Stop WPP Tracing
     //
     WPP_CLEANUP(WdfDriverWdmGetDriverObject((WDFDRIVER)DriverObject));
+}
+
+VOID
+driverEvtDriverUnload(
+	_In_
+	WDFDRIVER Driver
+)
+{
+	UNREFERENCED_PARAMETER(Driver);
+
+	return;
 }
