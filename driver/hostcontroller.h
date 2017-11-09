@@ -16,6 +16,7 @@ WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(HOST_CONTROLLER_CONTEXT, GetHostControllerCon
 
 NTSTATUS
 CreateHostController(
+	__in
 	WDFDEVICE device
 );
 

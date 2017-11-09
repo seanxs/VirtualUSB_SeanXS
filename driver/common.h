@@ -14,6 +14,12 @@
 
 #include "Trace.h"
 
-#define VBus_SeanXS_Print(_x_) KdPrint((__FUNCTION__##_x_))
+#define USB20_PORTS 4
+#define USB30_PORTS 4
+#define PORT_COUNT (USB20_PORTS + USB30_PORTS)
+
+#define VBUS_SEAN_POOL_TAG 'NAES'
+
+#define IP_DEV_BUF_SIZE 32
 
 #endif // !_VBUS_SEANXS_COMMON_H

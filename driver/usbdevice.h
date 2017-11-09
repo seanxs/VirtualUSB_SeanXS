@@ -1,0 +1,34 @@
+#pragma once
+#ifndef _VBUS_SEAN_USBDEVICE_H
+#define _VBUS_SEAN_USBDEVICE_H
+
+#include "common.h"
+
+EXTERN_C_START
+
+typedef struct _USB_DEVICE_CONTEXT
+{
+	WDFDEVICE wdfdev;
+	USB_DEVICE_SPEED DeviceSpeed;
+	UCXUSBDEVICE TtHub;
+	USB_DEVICE_PORT_PATH PortPath;
+	PWSK_SOCKET pSocket;
+	LONG usbip_seqnum;
+	UINT32 usbip_deviceid;
+}USB_DEVICE_CONTEXT, *PUSB_DEVICE_CONTEXT;
+
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(USB_DEVICE_CONTEXT, GetUsbDeviceContext)
+
+EVT_UCX_USBDEVICE_ENDPOINTS_CONFIGURE UsbDevice_EvtUcxUsbDeviceEndpointsConfigure;
+EVT_UCX_USBDEVICE_ENABLE UsbDevice_EvtUcxUsbDeviceEnable;
+EVT_UCX_USBDEVICE_DISABLE UsbDevice_EvtUcxUsbDeviceDisable;
+EVT_UCX_USBDEVICE_RESET UsbDevice_EvtUcxUsbDeviceReset;
+EVT_UCX_USBDEVICE_ADDRESS UsbDevice_EvtUcxUsbDeviceAddress;
+EVT_UCX_USBDEVICE_UPDATE  UsbDevice_EvtUcxUsbDeviceUpdate;
+EVT_UCX_USBDEVICE_HUB_INFO UsbDevice_EvtUcxUsbDeviceHubInfo;
+EVT_UCX_USBDEVICE_DEFAULT_ENDPOINT_ADD UsbDevice_EvtUcxUsbDeviceDefaultEndpointAdd;
+EVT_UCX_USBDEVICE_ENDPOINT_ADD UsbDevice_EvtUcxUsbDeviceEndpointAdd;
+
+EXTERN_C_END
+
+#endif // !_VBUS_SEAN_USBDEVICE_H

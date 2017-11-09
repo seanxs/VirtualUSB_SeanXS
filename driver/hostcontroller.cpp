@@ -10,6 +10,7 @@
 
 NTSTATUS
 CreateHostController(
+	__in
 	WDFDEVICE device
 )
 {
@@ -36,8 +37,7 @@ CreateHostController(
 		return status;
 	}
 	
-	//KdPrint((__FUNCTION__"\tVirtual USB host controller has been created\n"));
-	VBus_SeanXS_Print("\tVirtual USB host controller has been created\n");
+	KdPrint((__FUNCTION__"\tVirtual USB host controller has been created\n"));
 
 	pControllerContext = GetHostControllerContext(HostController);
 	pControllerContext->WdfDevice = device;
@@ -163,7 +163,7 @@ Controller_EvtControllerQueryUsbCapability(
 	}
 	else {
 		TraceEvents(TRACE_LEVEL_WARNING, TRACE_CONTROLLER, "Unhandled USB capability");
-		VBus_SeanXS_Print("Unhandled USB capability\n");
+		KdPrint(("Unhandled USB capability\n"));
 		status = STATUS_NOT_IMPLEMENTED;
 	}
 

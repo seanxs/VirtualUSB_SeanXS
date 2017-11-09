@@ -42,6 +42,9 @@ driverQueueInitialize(
 //
 EVT_WDF_IO_QUEUE_IO_DEVICE_CONTROL driverEvtIoDeviceControl;
 EVT_WDF_IO_QUEUE_IO_STOP driverEvtIoStop;
+EVT_WDF_IO_QUEUE_STATE DefaultEndpoint_QueuqReady;
+EVT_WDF_IO_QUEUE_STATE Endpoint_QueuqReady;
+EVT_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE UrbIoCanceledOnQueue;
 
 EXTERN_C_END
 

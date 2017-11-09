@@ -20,6 +20,7 @@ Environment:
 #include "hostcontroller.h"
 #include "roothub.h"
 #include "device.tmh"
+#include "others.h"
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text (PAGE, driverCreateDevice)
@@ -47,20 +48,24 @@ Return Value:
 
 --*/
 {
-    WDF_OBJECT_ATTRIBUTES deviceAttributes;
+    WDF_OBJECT_ATTRIBUTES attributes;
     PDEVICE_CONTEXT deviceContext;
     WDFDEVICE device;
     NTSTATUS status;
+	WDF_TIMER_CONFIG  timerConfig;
+	WDF_WORKITEM_CONFIG  workitemConfig;
+	WDF_DPC_CONFIG dpcConfig;
 
     PAGED_CODE();
 
 	do
 	{
-		WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&deviceAttributes, DEVICE_CONTEXT);
-
-		status = WdfDeviceCreate(&DeviceInit, &deviceAttributes, &device);
+		WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes, DEVICE_CONTEXT);
+		attributes.EvtDestroyCallback = Device_EvtDestroyCallback;
+		status = WdfDeviceCreate(&DeviceInit, &attributes, &device);
 		if (!NT_SUCCESS(status))
 		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfDeviceCreate failed, status:%#x", status);
 			break;
 		}
 
@@ -78,8 +83,16 @@ Return Value:
 		//
 		// Initialize the context.
 		//
-		deviceContext->PrivateDeviceData = 0;
-
+		deviceContext->pRemteDevInfo = (PREMOTE_DEVICE_INFO)ExAllocatePoolWithTag(NonPagedPool, sizeof(REMOTE_DEVICE_INFO)*PORT_COUNT, VBUS_SEAN_POOL_TAG);
+		if (deviceContext->pRemteDevInfo == NULL)
+		{
+			status = STATUS_INSUFFICIENT_RESOURCES;
+			break;
+		}
+		else
+		{
+			RtlZeroMemory((PVOID)deviceContext->pRemteDevInfo, sizeof(REMOTE_DEVICE_INFO)*PORT_COUNT);
+		}
 		//
 		// Create a device interface so that applications can find and talk
 		// to us.
@@ -92,6 +105,7 @@ Return Value:
 
 		if (!NT_SUCCESS(status))
 		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfDeviceCreateDeviceInterface failed, status:%#x", status);
 			break;
 		}
 
@@ -101,6 +115,42 @@ Return Value:
 		status = driverQueueInitialize(device);
 		if (!NT_SUCCESS(status))
 		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "driverQueueInitialize failed");
+			break;
+		}
+
+		//	create workitem object
+		WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+		//WDF_OBJECT_ATTRIBUTES_SET_CONTEXT_TYPE(&attributes, VHCISEAN_WORKITEM_CONTEXT);
+		attributes.ParentObject = device;
+		WDF_WORKITEM_CONFIG_INIT(&workitemConfig, IoCtrl_EvtWorkItem);
+		status = WdfWorkItemCreate(&workitemConfig, &attributes, &deviceContext->IoCtrl_WrokItem);
+		if (!NT_SUCCESS(status))
+		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfWorkItemCreate failed, %!STATUS!", status);
+			break;
+		}
+
+		//	create timer object
+		WDF_TIMER_CONFIG_INIT(&timerConfig, RootHub_TimerFunc);
+		WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+		attributes.ParentObject = device;
+		status = WdfTimerCreate(&timerConfig, &attributes, &deviceContext->RootHub_Timer);
+		if (!NT_SUCCESS(status))
+		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfTimerCreate failed, %!STATUS!", status);
+			break;
+		}
+
+		//	create dpc object
+		WDF_DPC_CONFIG_INIT(&dpcConfig, CompleteUrb_EvtDpcFunc);
+		dpcConfig.AutomaticSerialization = TRUE;
+		WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+		attributes.ParentObject = device;
+		status = WdfDpcCreate(&dpcConfig, &attributes, &deviceContext->CompleteUrbDpc);
+		if (!NT_SUCCESS(status))
+		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfTimerCreate failed, %!STATUS!", status);
 			break;
 		}
 
@@ -108,16 +158,30 @@ Return Value:
 		status = CreateHostController(device);
 		if (!NT_SUCCESS(status))
 		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "CreateHostController failed");
 			break;
 		}
 
-		//	create host controller object
+		//	create host roothub object
 		status = CreateRoothub(device);
 		if (!NT_SUCCESS(status))
 		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "CreateRoothub failed");
 			break;
 		}
-	} while (FALSE);    
+	} while (FALSE);
 
     return status;
+}
+
+VOID Device_EvtDestroyCallback(
+	_In_ WDFOBJECT Object
+)
+{
+	//WDFDEVICE device = (WDFDEVICE)Object;
+	PDEVICE_CONTEXT pDeviceContext = DeviceGetContext((WDFDEVICE)Object);
+	
+	ExFreePoolWithTag((PVOID)pDeviceContext->pRemteDevInfo, VBUS_SEAN_POOL_TAG);
+
+	return;
 }

@@ -1,0 +1,24 @@
+#pragma once
+#ifndef _VBUS_SEANXS_OTHERS_H
+#define _VBUS_SEANXS_OTHERS_H
+
+#include "common.h"
+
+EXTERN_C_START
+
+typedef struct _IOCTRL_WORKITEM_CONTEXT
+{
+	ULONG IoCtrl;
+}IOCTRL_WORKITEM_CONTEXT, *PIOCTRL_WORKITEM_CONTEXT;
+
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(IOCTRL_WORKITEM_CONTEXT, WorkItemGetContext)
+
+EVT_WDF_TIMER  RootHub_TimerFunc;
+EVT_WDF_WORKITEM IoCtrl_EvtWorkItem;
+EVT_WDF_WORKITEM Attach_EvtWorkItem;
+EVT_WDF_WORKITEM Detach_EvtWorkItem;
+EVT_WDF_DPC CompleteUrb_EvtDpcFunc;
+
+EXTERN_C_END
+
+#endif

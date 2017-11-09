@@ -31,6 +31,9 @@ Environment:
 		WPP_DEFINE_BIT(TRACE_WSKCLIENT)                                    \
 		WPP_DEFINE_BIT(TRACE_CONTROLLER)                                    \
 		WPP_DEFINE_BIT(TRACE_ROOTHUB)                                    \
+		WPP_DEFINE_BIT(TRACE_USBDEVICE)                                    \
+		WPP_DEFINE_BIT(TRACE_ENDPOINT)                                    \
+		WPP_DEFINE_BIT(TRACE_OTHERS)									\
         )                             
 
 #define WPP_FLAG_LEVEL_LOGGER(flag, level)                                  \

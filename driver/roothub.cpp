@@ -8,6 +8,7 @@
 
 NTSTATUS
 CreateRoothub(
+	__in
 	WDFDEVICE device
 )
 {
@@ -55,7 +56,7 @@ CreateRoothub(
 		return status;
 	}
 
-	VBus_SeanXS_Print("\tVirtual USB roothub has been created\n");
+	KdPrint(("Virtual USB roothub has been created\n"));
 
 	pRootHubContext = GetRootHubContext(ucxRootHub);
 	pRootHubContext->WdfDevice = device;

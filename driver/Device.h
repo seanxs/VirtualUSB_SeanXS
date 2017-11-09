@@ -17,6 +17,7 @@ Environment:
 #define _VBUS_SEANXS_DEVICE_H
 
 #include "common.h"
+#include "Public.h"
 
 EXTERN_C_START
 
@@ -26,11 +27,14 @@ EXTERN_C_START
 //
 typedef struct _DEVICE_CONTEXT
 {
-    ULONG PrivateDeviceData;  // just a placeholder
+	WDFTIMER RootHub_Timer;
+	WDFWORKITEM IoCtrl_WrokItem;
+	WDFDPC UrbDpc;
 	UCXCONTROLLER USBController;
 	UCXROOTHUB USBRootHub;
 	WDFDPC CompleteUrbDpc;
 	WDFQUEUE CompleteUrbQueue;
+	PREMOTE_DEVICE_INFO pRemteDevInfo;
 } DEVICE_CONTEXT, *PDEVICE_CONTEXT;
 
 //
@@ -47,6 +51,8 @@ NTSTATUS
 driverCreateDevice(
     _Inout_ PWDFDEVICE_INIT DeviceInit
     );
+
+EVT_WDF_OBJECT_CONTEXT_DESTROY Device_EvtDestroyCallback;
 
 EXTERN_C_END
 

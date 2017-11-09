@@ -6,18 +6,30 @@
 
 EXTERN_C_START
 
+typedef struct _UCX_ROOTHUB_PORT_STATUS
+{
+	ULONG Index;
+	USHORT port_status;
+	USHORT c_port_status;
+	ULONG ext_port_status;
+} UCX_ROOTHUB_PORT_STATUS, *PUCX_ROOTHUB_PORT_STATUS;
+
 typedef struct _ROOTHUB_CONTEXT
 {
 	WDFDEVICE WdfDevice;
 	UINT8 NumberOf20Ports;
 	UINT8 NumberOf30Ports;
-	//UCXROOTHUB UcxRootHub;
+	USHORT U1DeviceExitLatency;
+	USHORT U2DeviceExitLatency;
+	UCX_ROOTHUB_PORT_STATUS mPortStatusArray[USB20_PORTS + USB30_PORTS];
+	UINT32 PortchgBits;
 } ROOTHUB_CONTEXT, *PROOTHUB_CONTEXT;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(ROOTHUB_CONTEXT, GetRootHubContext)
 
 NTSTATUS
 CreateRoothub(
+	__in
 	WDFDEVICE device
 );
 

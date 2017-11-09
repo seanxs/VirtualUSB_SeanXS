@@ -11,6 +11,7 @@ const WSK_CLIENT_DISPATCH WskClientDispatch = {
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(PAGE, InitWskClient)
 #pragma alloc_text(PAGE, UnInitWskClient)
+#pragma alloc_text(PAGE, AttachRemoteDevice)
 #endif
 
 NTSTATUS
@@ -55,4 +56,30 @@ VOID UnInitWskClient(
 	WskDeregister(&pDrvContext->WskRegistration);
 
 	return;
+}
+
+NTSTATUS AttachRemoteDevice(
+	_In_ PCHAR RemoteIp,
+	_In_ PCHAR DeviceId,
+	_Inout_ WDFCONTEXT pContext
+)
+{
+	PAGED_CODE();
+	UNREFERENCED_PARAMETER(RemoteIp);
+	UNREFERENCED_PARAMETER(DeviceId);
+	UNREFERENCED_PARAMETER(pContext);
+
+	NTSTATUS status = STATUS_SUCCESS;
+	return status;
+}
+
+NTSTATUS DetachRemoteDevice(
+	_Inout_ WDFCONTEXT pContext
+)
+{
+	PAGED_CODE();
+	UNREFERENCED_PARAMETER(pContext);
+
+	NTSTATUS status = STATUS_SUCCESS;
+	return status;
 }

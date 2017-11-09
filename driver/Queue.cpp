@@ -16,6 +16,10 @@ Environment:
 
 #include "queue.h"
 #include "queue.tmh"
+#include "Public.h"
+#include "wskclient.h"
+#include "Device.h"
+#include "roothub.h"
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text (PAGE, driverQueueInitialize)
@@ -65,14 +69,10 @@ Return Value:
     queueConfig.EvtIoDeviceControl = driverEvtIoDeviceControl;
     queueConfig.EvtIoStop = driverEvtIoStop;
 
-    status = WdfIoQueueCreate(
-                 Device,
-                 &queueConfig,
-                 WDF_NO_OBJECT_ATTRIBUTES,
-                 &queue
-                 );
+	status = WdfIoQueueCreate(Device, &queueConfig, WDF_NO_OBJECT_ATTRIBUTES, &queue);
 
-    if(!NT_SUCCESS(status)) {
+    if(!NT_SUCCESS(status))
+	{
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_QUEUE, "WdfIoQueueCreate failed %!STATUS!", status);
         return status;
     }
@@ -118,8 +118,121 @@ Return Value:
                 "%!FUNC! Queue 0x%p, Request 0x%p OutputBufferLength %d InputBufferLength %d IoControlCode %d", 
                 Queue, Request, (int) OutputBufferLength, (int) InputBufferLength, IoControlCode);
 
-    WdfRequestComplete(Request, STATUS_SUCCESS);
+	NTSTATUS status = STATUS_SUCCESS;
+	KPROCESSOR_MODE requestorMode;
+	WDF_REQUEST_PARAMETERS RequestParams;
+	PREMOTE_DEVICE_INFO pRemoteDevice;
+	WDFDEVICE device;
+	PDEVICE_CONTEXT pDeviceContext;
+	INT16 Port_Number = 1;
+	PROOTHUB_CONTEXT pRoothubContext;
 
+	do
+	{
+		//
+		// Check that the request is coming from user mode
+		//
+		requestorMode = WdfRequestGetRequestorMode(Request);
+		if (requestorMode != UserMode)
+		{
+			TraceEvents(TRACE_LEVEL_ERROR, TRACE_QUEUE, "Invalid RequestorMode %d", requestorMode);
+			status = STATUS_INVALID_DEVICE_REQUEST;
+			break;
+		}
+
+		switch (IoControlCode)
+		{
+			case IOCTL_VBUS_SEANXS_ATTACH_REMOTE_DEVICE:
+			{
+				TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_QUEUE, "IOCTL_VHCI_SEAN_ATTACH_REMOTE_DEVICE");
+				WDF_REQUEST_PARAMETERS_INIT(&RequestParams);
+				WdfRequestGetParameters(Request, &RequestParams);
+				device = WdfIoQueueGetDevice(Queue);
+
+				if (InputBufferLength == 0)
+				{
+					//status = AttachRemoteDevice("192.168.10.195", "1-1.1", device);
+					Port_Number = 1;
+					RtlStringCbCopyA(pDeviceContext->pRemteDevInfo[Port_Number-1].IpAddr, IP_DEV_BUF_SIZE, pRemoteDevice->IpAddr);
+					RtlStringCbCopyA(pDeviceContext->pRemteDevInfo[Port_Number-1].Device, IP_DEV_BUF_SIZE, pRemoteDevice->Device);
+
+					pRoothubContext = GetRootHubContext(pDeviceContext->USBRootHub);
+					pRoothubContext->mPortStatusArray[Port_Number - 1].port_status |= 1;
+					pRoothubContext->mPortStatusArray[Port_Number - 1].c_port_status |= 1;
+					pRoothubContext->PortchgBits |= 1 << Port_Number;
+
+					WdfWorkItemEnqueue(pDeviceContext->IoCtrl_WrokItem);
+					status = STATUS_SUCCESS;
+					break;
+				}
+				else if (InputBufferLength != sizeof(REMOTE_DEVICE_INFO))
+				{
+					status = STATUS_INVALID_PARAMETER;
+					break;
+				}
+				else
+				{
+					status = WdfRequestRetrieveInputBuffer(Request, InputBufferLength, (PVOID*)&pRemoteDevice, NULL);
+					if (!NT_SUCCESS(status))
+					{
+						status = STATUS_INVALID_PARAMETER;
+						break;
+					}
+
+					if (pRemoteDevice->Port_Number > PORT_COUNT)
+					{
+						status = STATUS_INVALID_PARAMETER;
+						break;
+					}
+
+					pDeviceContext = DeviceGetContext(device);
+					if (pRemoteDevice->Port_Number == 0)
+					{
+						for (Port_Number = 0; Port_Number < PORT_COUNT; Port_Number++)
+						{
+							if (pDeviceContext->pRemteDevInfo[Port_Number].Device[0] == '\0')
+							{
+								break;
+							}
+						}
+						if (Port_Number == PORT_COUNT)
+						{
+							status = STATUS_UNSUCCESSFUL;
+							break;
+						}
+					}
+					else
+					{
+						Port_Number = pRemoteDevice->Port_Number - 1;
+					}
+
+					RtlStringCbCopyA(pDeviceContext->pRemteDevInfo[Port_Number].IpAddr, IP_DEV_BUF_SIZE, pRemoteDevice->IpAddr);
+					RtlStringCbCopyA(pDeviceContext->pRemteDevInfo[Port_Number].Device, IP_DEV_BUF_SIZE, pRemoteDevice->Device);
+
+					pRoothubContext = GetRootHubContext(pDeviceContext->USBRootHub);
+					pRoothubContext->mPortStatusArray[Port_Number].port_status |= 1;
+					pRoothubContext->mPortStatusArray[Port_Number].c_port_status |= 1;
+					pRoothubContext->PortchgBits |= 1 << (Port_Number + 1);
+
+					WdfWorkItemEnqueue(pDeviceContext->IoCtrl_WrokItem);
+					status = STATUS_SUCCESS;
+					break;
+				}			
+			}
+			case IOCTL_VBUS_SEANXS_DETACH_REMOTE_DEVICE:
+			{
+				break;
+			}
+			default:
+			{
+				TraceEvents(TRACE_LEVEL_WARNING, TRACE_QUEUE, "Unsupported IoControlCode:%#x", IoControlCode);
+				status = STATUS_INVALID_DEVICE_REQUEST;
+				break;
+			}
+		}
+	} while (FALSE);
+
+    WdfRequestComplete(Request, status);
     return;
 }
 
@@ -196,4 +309,46 @@ Return Value:
     //
 
     return;
+}
+
+VOID
+DefaultEndpoint_QueuqReady(
+	__in
+	WDFQUEUE    Queue,
+	__in
+	WDFCONTEXT  Context
+)
+{
+	UNREFERENCED_PARAMETER(Queue);
+	UNREFERENCED_PARAMETER(Context);
+	TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_QUEUE, "%!FUNC! Entry");
+	TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_QUEUE, "%!FUNC! Exit");
+	return;
+}
+
+VOID
+Endpoint_QueuqReady(
+	__in
+	WDFQUEUE    Queue,
+	__in
+	WDFCONTEXT  Context
+)
+{
+	UNREFERENCED_PARAMETER(Queue);
+	UNREFERENCED_PARAMETER(Context);
+	TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_QUEUE, "%!FUNC! Entry");
+	TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_QUEUE, "%!FUNC! Exit");
+	return;
+}
+
+VOID UrbIoCanceledOnQueue(
+	_In_ WDFQUEUE   Queue,
+	_In_ WDFREQUEST Request
+)
+{
+	UNREFERENCED_PARAMETER(Queue);
+	UNREFERENCED_PARAMETER(Request);
+	TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_QUEUE, "%!FUNC! Entry");
+	TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_QUEUE, "%!FUNC! Exit");
+	return;
 }
