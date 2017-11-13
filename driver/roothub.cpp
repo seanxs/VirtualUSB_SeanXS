@@ -46,11 +46,7 @@ CreateRoothub(
 #endif
 	WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes, ROOTHUB_CONTEXT);
 
-	status = UcxRootHubCreate(
-		pDeviceContext->USBController,
-		&ucxRootHubConfig,
-		&attributes,
-		&ucxRootHub);
+	status = UcxRootHubCreate(pDeviceContext->USBController, &ucxRootHubConfig, &attributes, &ucxRootHub);
 	if (!NT_SUCCESS(status)) {
 		TraceEvents(TRACE_LEVEL_ERROR, TRACE_ROOTHUB, "UcxRootHubCreate failed 0x%x", status);
 		return status;

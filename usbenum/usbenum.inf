@@ -1,0 +1,86 @@
+;
+; usbenum.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=usbenum.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+usbenum_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+usbenum.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%usbenum.DeviceDesc%=usbenum_Device, Root\usbenum ; TODO: edit hw-id
+
+[usbenum_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+usbenum.sys
+
+;-------------- Service installation
+[usbenum_Device.NT.Services]
+AddService = usbenum,%SPSVCINST_ASSOCSERVICE%, usbenum_Service_Inst
+
+; -------------- usbenum driver install sections
+[usbenum_Service_Inst]
+DisplayName    = %usbenum.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\usbenum.sys
+
+;
+;--- usbenum_Device Coinstaller installation ------
+;
+
+[usbenum_Device.NT.CoInstallers]
+AddReg=usbenum_Device_CoInstaller_AddReg
+CopyFiles=usbenum_Device_CoInstaller_CopyFiles
+
+[usbenum_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[usbenum_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[usbenum_Device.NT.Wdf]
+KmdfService =  usbenum, usbenum_wdfsect
+[usbenum_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "usbenum Installation Disk"
+usbenum.DeviceDesc = "usbenum Device"
+usbenum.SVCDESC = "usbenum Service"
