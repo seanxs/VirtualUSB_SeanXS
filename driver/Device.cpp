@@ -143,7 +143,7 @@ Return Value:
 		}
 
 		//	create dpc object
-		WDF_DPC_CONFIG_INIT(&dpcConfig, CompleteUrb_EvtDpcFunc);
+		WDF_DPC_CONFIG_INIT(&dpcConfig, EvtDpcFunc_UrbComplete);
 		dpcConfig.AutomaticSerialization = TRUE;
 		WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
 		attributes.ParentObject = device;

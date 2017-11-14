@@ -17,19 +17,10 @@ Environment:
 
 --*/
 
-#include <ntddk.h>
-#include <wdf.h>
-#define NTSTRSAFE_LIB
-#include <ntstrsafe.h>
-#include <ntintsafe.h>
-#include <initguid.h>
-#include "driver.h"
-#include "public.h"
-#include "busenumMof.h"
-
-
 #ifndef BUSENUM_H
 #define BUSENUM_H
+
+#include "CommonHeader.h"
 
 extern ULONG BusEnumDebugLevel;
 

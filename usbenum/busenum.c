@@ -18,6 +18,7 @@ Environment:
 --*/
 
 #include "busenum.h"
+#include "network.h"
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text (INIT, DriverEntry)
@@ -26,6 +27,7 @@ Environment:
 #pragma alloc_text (PAGE, Bus_PlugInDevice)
 #pragma alloc_text (PAGE, Bus_UnPlugDevice)
 #pragma alloc_text (PAGE, Bus_EjectDevice)
+#pragma alloc_text (PAGE, DrvObjContextCleanup)
 #endif
 
 NTSTATUS
@@ -51,11 +53,13 @@ Return Value:
 
 --*/
 {
-    WDF_DRIVER_CONFIG   config;
-    NTSTATUS            status;
+    WDF_DRIVER_CONFIG config;
+    NTSTATUS status;
     WDFDRIVER driver;
+	WDF_OBJECT_ATTRIBUTES attributes;
 
     KdPrint(("WDF Toaster Bus Driver Sample Dynamic Version.\n"));
+	ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
 
     //
     // Initiialize driver config to control the attributes that
@@ -69,19 +73,24 @@ Return Value:
         &config,
         Bus_EvtDeviceAdd
         );
-
+	config.DriverPoolTag = 'NEAS';
     //
     // Create a framework driver object to represent our driver.
     //
-    status = WdfDriverCreate(DriverObject,
-                             RegistryPath,
-                             WDF_NO_OBJECT_ATTRIBUTES,
-                             &config,
-                             &driver);
+	WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes, DRIVER_CONTEXT);
+	attributes.EvtCleanupCallback = DrvObjContextCleanup;
+	status = WdfDriverCreate(
+		DriverObject,
+		RegistryPath,
+		&attributes,
+		&config,
+		&driver);
 
     if (!NT_SUCCESS(status)) {
         KdPrint( ("WdfDriverCreate failed with status 0x%x\n", status));
     }
+
+	status = InitWskClient(driver);
 
     return status;
 
@@ -771,4 +780,30 @@ Routine Description:
     return status;
 }
 
+VOID
+DrvObjContextCleanup(
+	_In_ WDFOBJECT DriverObject
+)
+/*++
+Routine Description:
+
+Free all the resources allocated in DriverEntry.
+
+Arguments:
+
+DriverObject - handle to a WDF Driver object.
+
+Return Value:
+
+VOID.
+
+--*/
+{
+	//	added the following code, https://github.com/Microsoft/Windows-driver-samples/issues/39#issuecomment-286915071
+	_IRQL_limited_to_(PASSIVE_LEVEL);
+
+	PAGED_CODE();
+
+	UnInitWskClient((WDFDRIVER)DriverObject);
+}
 

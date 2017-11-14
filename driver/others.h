@@ -17,7 +17,7 @@ EVT_WDF_TIMER  RootHub_TimerFunc;
 EVT_WDF_WORKITEM IoCtrl_EvtWorkItem;
 EVT_WDF_WORKITEM Attach_EvtWorkItem;
 EVT_WDF_WORKITEM Detach_EvtWorkItem;
-EVT_WDF_DPC CompleteUrb_EvtDpcFunc;
+EVT_WDF_DPC EvtDpcFunc_UrbComplete;
 
 EXTERN_C_END
 

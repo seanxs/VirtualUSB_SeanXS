@@ -153,8 +153,9 @@ Return Value:
 				{
 					//status = AttachRemoteDevice("192.168.10.195", "1-1.1", device);
 					Port_Number = 1;
-					RtlStringCbCopyA(pDeviceContext->pRemteDevInfo[Port_Number-1].IpAddr, IP_DEV_BUF_SIZE, pRemoteDevice->IpAddr);
-					RtlStringCbCopyA(pDeviceContext->pRemteDevInfo[Port_Number-1].Device, IP_DEV_BUF_SIZE, pRemoteDevice->Device);
+					pDeviceContext = DeviceGetContext(device);
+					RtlStringCbCopyA(pDeviceContext->pRemteDevInfo[Port_Number-1].IpAddr, IP_DEV_BUF_SIZE, "192.168.10.195");
+					RtlStringCbCopyA(pDeviceContext->pRemteDevInfo[Port_Number-1].Device, IP_DEV_BUF_SIZE, "1-1.1");
 
 					pRoothubContext = GetRootHubContext(pDeviceContext->USBRootHub);
 					pRoothubContext->mPortStatusArray[Port_Number - 1].port_status |= 1;

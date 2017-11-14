@@ -15,7 +15,7 @@ Environment:
     user and kernel
 
 --*/
-
+#include "CommonHeader.h"
 //
 // Define an Interface Guid for bus enumerator class.
 // This GUID is used to register (IoRegisterDeviceInterface)

@@ -145,13 +145,19 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalDependencies>ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ntstrsafe.lib;netio.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <PreprocessorDefinitions>POOL_NX_OPTIN=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ntstrsafe.lib;netio.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <PreprocessorDefinitions>POOL_NX_OPTIN = 1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Inf Include="usbenum.inf" />
@@ -162,12 +168,15 @@
   <ItemGroup>
     <ClCompile Include="busenum.c" />
     <ClCompile Include="buspdo.c" />
+    <ClCompile Include="network.cpp" />
     <ClCompile Include="wmi.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="busenum.h" />
     <ClInclude Include="busenumMof.h" />
+    <ClInclude Include="CommonHeader.h" />
     <ClInclude Include="driver.h" />
+    <ClInclude Include="network.h" />
     <ClInclude Include="public.h" />
   </ItemGroup>
   <ItemGroup>

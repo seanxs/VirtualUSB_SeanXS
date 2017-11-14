@@ -3,7 +3,7 @@
 #include "Device.h"
 
 #ifdef ALLOC_PRAGMA
-#pragma alloc_text (PAGE, IoControlEvtWorkItem)
+#pragma alloc_text (PAGE, IoCtrl_EvtWorkItem)
 #endif
 
 _Use_decl_annotations_

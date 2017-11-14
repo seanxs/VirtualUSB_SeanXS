@@ -19,23 +19,24 @@ Environment:
 //#include "public.h"
 
 //
-// Define an Interface Guid to access the proprietary toaster interface.
-// This guid is used to identify a specific interface in IRP_MN_QUERY_INTERFACE
-// handler.
-//
-
-DEFINE_GUID(GUID_TOASTER_INTERFACE_STANDARD,
-        0xe0b27630, 0x5434, 0x11d3, 0xb8, 0x90, 0x0, 0xc0, 0x4f, 0xad, 0x51, 0x71);
-// {E0B27630-5434-11d3-B890-00C04FAD5171}
-
-
-//
 // GUID definition are required to be outside of header inclusion pragma to avoid
 // error during precompiled headers.
 //
 
 #ifndef __DRIVER_H
 #define __DRIVER_H
+
+#include "CommonHeader.h"
+
+//
+// Define an Interface Guid to access the proprietary toaster interface.
+// This guid is used to identify a specific interface in IRP_MN_QUERY_INTERFACE
+// handler.
+//
+
+DEFINE_GUID(GUID_TOASTER_INTERFACE_STANDARD,
+	0xe0b27630, 0x5434, 0x11d3, 0xb8, 0x90, 0x0, 0xc0, 0x4f, 0xad, 0x51, 0x71);
+// {E0B27630-5434-11d3-B890-00C04FAD5171}
 
 //
 // Define Interface reference/dereference routines for
@@ -75,6 +76,16 @@ typedef struct _TOASTER_INTERFACE_STANDARD {
     PTOASTER_IS_CHILD_PROTECTED      IsSafetyLockEnabled; //):
 } TOASTER_INTERFACE_STANDARD, *PTOASTER_INTERFACE_STANDARD;
 
+typedef struct _DRIVER_CONTEXT
+{
+	WSK_REGISTRATION WskRegistration;
+	WSK_PROVIDER_NPI WskProviderNpi;
+	WSK_CLIENT_NPI wskClientNpi;
+} DRIVER_CONTEXT, *PDRIVER_CONTEXT;
+
+WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DRIVER_CONTEXT, GetDriverContext)
+
+EVT_WDF_OBJECT_CONTEXT_CLEANUP DrvObjContextCleanup;
 
 #endif
 
